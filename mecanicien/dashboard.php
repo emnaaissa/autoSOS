@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Mécanicien - autoSOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+    <nav class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white hidden md:block p-6">
+        <h1 class="text-2xl font-bold mb-10 text-blue-400 italic">auto<span class="text-red-500">SOS</span></h1>
+        <ul class="space-y-4">
+            <li class="bg-blue-600 p-3 rounded-lg"><a href="#"><i class="fas fa-home mr-3"></i> Vue d'ensemble</a></li>
+            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="#"><i class="fas fa-tools mr-3"></i> Interventions</a></li>
+            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="#"><i class="fas fa-history mr-3"></i> Historique</a></li>
+            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="#"><i class="fas fa-wallet mr-3"></i> Revenus</a></li>
+            <li class="hover:bg-slate-800 p-3 rounded-lg transition mt-20"><a href="../auth/logout.php" class="text-red-400"><i class="fas fa-sign-out-alt mr-3"></i> Déconnexion</a></li>
+        </ul>
+    </nav>
+
+    <main class="md:ml-64 p-4 md:p-8">
+
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Bonjour, [Nom du Mécano] !</h2>
+                <p class="text-gray-500 text-sm">Vous êtes actuellement <span class="text-green-500 font-semibold italic">En ligne</span></p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="relative p-2 bg-white rounded-full shadow-sm">
+                    <i class="fas fa-bell text-gray-600"></i>
+                    <span class="absolute top-0 right-0 h-3 w-3 bg-red-500 border-2 border-white rounded-full"></span>
+                </button>
+                <img src="https://ui-avatars.com/api/?name=Meca+SOS&background=0D8ABC&color=fff" class="h-10 w-10 rounded-full border-2 border-blue-500">
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase">Missions du jour</p>
+                        <h3 class="text-2xl font-bold">4</h3>
+                    </div>
+                    <i class="fas fa-calendar-check text-blue-200 text-3xl"></i>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase">Gains (Semaine)</p>
+                        <h3 class="text-2xl font-bold">450 DT</h3>
+                    </div>
+                    <i class="fas fa-coins text-green-200 text-3xl"></i>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase">Note moyenne</p>
+                        <h3 class="text-2xl font-bold">4.8/5</h3>
+                    </div>
+                    <i class="fas fa-star text-yellow-200 text-3xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+            <div class="p-5 border-b bg-red-50 flex justify-between items-center">
+                <h3 class="font-bold text-red-700"><i class="fas fa-exclamation-triangle mr-2"></i>Demandes d'urgence à proximité</h3>
+                <span class="text-xs font-bold text-red-600 animate-pulse">DIRECT</span>
+            </div>
+            <div class="divide-y">
+                <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-gray-100 p-3 rounded-lg"><i class="fas fa-car text-gray-600 text-xl"></i></div>
+                        <div>
+                            <p class="font-bold">Panne Batterie - Peugeot 208</p>
+                            <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> Ariana (2.5 km)</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600">Accepter</button>
+                        <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold">Détails</button>
+                    </div>
+                </div>
+                <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-gray-100 p-3 rounded-lg"><i class="fas fa-oil-can text-gray-600 text-xl"></i></div>
+                        <div>
+                            <p class="font-bold">Vidange Express - Golf 7</p>
+                            <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> Tunis Centre (5.0 km)</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600">Accepter</button>
+                        <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold">Détails</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="fixed bottom-0 left-0 w-full bg-white border-t flex justify-around p-3 md:hidden">
+        <button class="text-blue-600"><i class="fas fa-home text-xl"></i></button>
+        <button class="text-gray-400"><i class="fas fa-tools text-xl"></i></button>
+        <button class="text-gray-400"><i class="fas fa-plus-circle text-3xl text-blue-600 -mt-8 bg-white rounded-full p-2 border shadow-lg"></i></button>
+        <button class="text-gray-400"><i class="fas fa-history text-xl"></i></button>
+        <button class="text-gray-400"><i class="fas fa-user text-xl"></i></button>
+    </div>
+
+</body>
+
+</html>
