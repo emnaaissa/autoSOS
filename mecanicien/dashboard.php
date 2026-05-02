@@ -29,6 +29,18 @@ $stmt_interv = $pdo->prepare("
 ");
 $stmt_interv->execute();
 $interventions = $stmt_interv->fetchAll();
+
+// NEW: Interventions en cours du mecanicien
+$stmt_encours = $pdo->prepare("
+    SELECT i.*, v.marque, v.modele, c.telephone as client_tel, c.nom as client_nom
+    FROM intervention i
+    LEFT JOIN vehicule v ON i.id_vehicule = v.id_vehicule
+    LEFT JOIN user c ON i.id_client = c.id_user
+    WHERE i.statut = 'en cours' AND i.id_mecanicien = ?
+    ORDER BY i.date_demande DESC
+");
+$stmt_encours->execute([$meca_id]);
+$interventions_en_cours = $stmt_encours->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -100,6 +112,39 @@ $interventions = $stmt_interv->fetchAll();
             </div>
         </div>
 
+        <!-- MISSIONS EN COURS -->
+        <?php if (count($interventions_en_cours) > 0): ?>
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border-l-4 border-blue-500">
+            <div class="p-5 border-b flex justify-between items-center bg-blue-50">
+                <h3 class="font-bold text-blue-800"><i class="fas fa-tools mr-2"></i>Mes interventions en cours</h3>
+            </div>
+            <div class="divide-y">
+                <?php foreach ($interventions_en_cours as $inv): ?>
+                <div class="p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-gray-50 transition gap-4">
+                    <div class="flex items-start space-x-4">
+                        <div class="bg-blue-100 p-3 rounded-lg flex-shrink-0"><i class="fas fa-wrench text-blue-600 text-xl"></i></div>
+                        <div>
+                            <p class="font-bold">
+                                <?= htmlspecialchars($inv['type_intervention']) ?> 
+                                <?= !empty($inv['marque']) ? ' - ' . htmlspecialchars($inv['marque'] . ' ' . $inv['modele']) : '' ?>
+                            </p>
+                            <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> <?= htmlspecialchars($inv['localisation']) ?></p>
+                            <p class="text-xs text-blue-600 font-bold mt-1"><i class="fas fa-phone"></i> <?= htmlspecialchars($inv['client_tel'] ?? '') ?> (<?= htmlspecialchars($inv['client_nom'] ?? 'Client') ?>)</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <form action="terminer_intervention.php" method="POST" class="inline m-0 p-0">
+                            <input type="hidden" name="id_intervention" value="<?= $inv['id_intervention'] ?>">
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 whitespace-nowrap">✔ Terminer</button>
+                        </form>
+                        <a href="details_intervention.php?id=<?= $inv['id_intervention'] ?>" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center">Détails</a>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
             <div class="p-5 border-b bg-red-50 flex justify-between items-center">
                 <h3 class="font-bold text-red-700"><i class="fas fa-exclamation-triangle mr-2"></i>Demandes d'urgence à proximité</h3>
@@ -122,9 +167,9 @@ $interventions = $stmt_interv->fetchAll();
                         <div class="flex space-x-2">
                             <form action="accepter_intervention.php" method="POST" class="inline m-0 p-0">
                                 <input type="hidden" name="id_intervention" value="<?= $inv['id_intervention'] ?>">
-                                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600">Accepter</button>
+                                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600 whitespace-nowrap">Accepter</button>
                             </form>
-                            <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold">Détails</button>
+                            <a href="details_intervention.php?id=<?= $inv['id_intervention'] ?>" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center">Détails</a>
                         </div>
                     </div>
                     <?php endforeach; ?>
