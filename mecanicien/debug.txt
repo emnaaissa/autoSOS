@@ -1,0 +1,4 @@
+--- NEW ATTEMPT ---
+POST Data: {"id_intervention":"2"}
+Fetched intervention: {"statut":"en attente","0":"en attente"}
+SQL Exception: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`autosos`.`intervention`, CONSTRAINT `intervention_ibfk_2` FOREIGN KEY (`id_mecanicien`) REFERENCES `mecanicien` (`id_user`) ON DELETE SET NULL)

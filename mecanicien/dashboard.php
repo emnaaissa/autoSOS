@@ -1,3 +1,35 @@
+<?php
+session_start();
+include("../config/db.php");
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
+    exit();
+}
+
+$meca_id = $_SESSION['user_id'];
+
+// Infos du mécanicien
+$stmt_meca = $pdo->prepare("SELECT u.nom, u.prenom FROM user u JOIN mecanicien m ON u.id_user = m.id_user WHERE u.id_user = ?");
+$stmt_meca->execute([$meca_id]);
+$meca = $stmt_meca->fetch() ?: ['nom' => 'Mécano', 'prenom' => ''];
+
+// Missions du jour
+$stmt_missions = $pdo->prepare("SELECT COUNT(*) FROM intervention WHERE id_mecanicien = ? AND statut IN ('en cours', 'Terminée')");
+$stmt_missions->execute([$meca_id]);
+$missions_du_jour = $stmt_missions->fetchColumn();
+
+// Interventions en attente
+$stmt_interv = $pdo->prepare("
+    SELECT i.*, v.marque, v.modele
+    FROM intervention i
+    LEFT JOIN vehicule v ON i.id_vehicule = v.id_vehicule
+    WHERE i.statut = 'en attente'
+    ORDER BY i.date_demande DESC
+");
+$stmt_interv->execute();
+$interventions = $stmt_interv->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -26,7 +58,7 @@
 
         <header class="flex justify-between items-center mb-8">
             <div>
-                <h2 class="text-2xl font-bold text-gray-800">Bonjour, [Nom du Mécano] !</h2>
+                <h2 class="text-2xl font-bold text-gray-800">Bonjour, <?= htmlspecialchars($meca['prenom'] . ' ' . $meca['nom']) ?> !</h2>
                 <p class="text-gray-500 text-sm">Vous êtes actuellement <span class="text-green-500 font-semibold italic">En ligne</span></p>
             </div>
             <div class="flex items-center space-x-4">
@@ -43,7 +75,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500 uppercase">Missions du jour</p>
-                        <h3 class="text-2xl font-bold">4</h3>
+                        <h3 class="text-2xl font-bold"><?= htmlspecialchars($missions_du_jour) ?></h3>
                     </div>
                     <i class="fas fa-calendar-check text-blue-200 text-3xl"></i>
                 </div>
@@ -74,32 +106,31 @@
                 <span class="text-xs font-bold text-red-600 animate-pulse">DIRECT</span>
             </div>
             <div class="divide-y">
-                <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition">
-                    <div class="flex items-center space-x-4">
-                        <div class="bg-gray-100 p-3 rounded-lg"><i class="fas fa-car text-gray-600 text-xl"></i></div>
-                        <div>
-                            <p class="font-bold">Panne Batterie - Peugeot 208</p>
-                            <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> Ariana (2.5 km)</p>
+                <?php if (count($interventions) > 0): ?>
+                    <?php foreach ($interventions as $inv): ?>
+                    <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-gray-100 p-3 rounded-lg"><i class="fas fa-car text-gray-600 text-xl"></i></div>
+                            <div>
+                                <p class="font-bold">
+                                    <?= htmlspecialchars($inv['type_intervention'] ?? 'Intervention') ?> 
+                                    <?= !empty($inv['marque']) ? ' - ' . htmlspecialchars($inv['marque'] . ' ' . $inv['modele']) : '' ?>
+                                </p>
+                                <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> <?= htmlspecialchars($inv['localisation']) ?></p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <form action="accepter_intervention.php" method="POST" class="inline m-0 p-0">
+                                <input type="hidden" name="id_intervention" value="<?= $inv['id_intervention'] ?>">
+                                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600">Accepter</button>
+                            </form>
+                            <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold">Détails</button>
                         </div>
                     </div>
-                    <div class="flex space-x-2">
-                        <button class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600">Accepter</button>
-                        <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold">Détails</button>
-                    </div>
-                </div>
-                <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition">
-                    <div class="flex items-center space-x-4">
-                        <div class="bg-gray-100 p-3 rounded-lg"><i class="fas fa-oil-can text-gray-600 text-xl"></i></div>
-                        <div>
-                            <p class="font-bold">Vidange Express - Golf 7</p>
-                            <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> Tunis Centre (5.0 km)</p>
-                        </div>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600">Accepter</button>
-                        <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold">Détails</button>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="p-4 text-center text-gray-500">Aucune demande en attente.</div>
+                <?php endif; ?>
             </div>
         </div>
 

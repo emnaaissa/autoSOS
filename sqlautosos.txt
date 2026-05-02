@@ -1,0 +1,181 @@
+-- =========================================
+-- DATABASE: AUTOSOS
+-- =========================================
+
+DROP DATABASE IF EXISTS autosos;
+CREATE DATABASE autosos;
+USE autosos;
+
+-- =========================================
+-- TABLE: USER (Parent)
+-- =========================================
+CREATE TABLE user (
+    id_user INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(50) NOT NULL,
+    prenom VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    mot_de_passe VARCHAR(255) NOT NULL,
+    telephone VARCHAR(20)
+) ENGINE=InnoDB;
+
+-- =========================================
+-- TABLE: CLIENT (inherits USER)
+-- =========================================
+CREATE TABLE client (
+    id_user INT PRIMARY KEY,
+    adresse VARCHAR(100),
+    FOREIGN KEY (id_user) REFERENCES user(id_user) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================
+-- TABLE: MECANICIEN (inherits USER)
+-- =========================================
+CREATE TABLE mecanicien (
+    id_user INT PRIMARY KEY,
+    specialite VARCHAR(50),
+    disponibilite BOOLEAN DEFAULT TRUE,
+    localisation VARCHAR(50),
+    FOREIGN KEY (id_user) REFERENCES user(id_user) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================
+-- TABLE: ADMIN (inherits USER)
+-- =========================================
+CREATE TABLE admin (
+    id_user INT PRIMARY KEY,
+    FOREIGN KEY (id_user) REFERENCES user(id_user) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================
+-- TABLE: VEHICULE
+-- =========================================
+CREATE TABLE vehicule (
+    id_vehicule INT AUTO_INCREMENT PRIMARY KEY,
+    marque VARCHAR(50),
+    modele VARCHAR(50),
+    immatriculation VARCHAR(50) UNIQUE,
+    type VARCHAR(50),
+    photo VARCHAR(255),
+    id_client INT,
+    FOREIGN KEY (id_client) REFERENCES client(id_user) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================
+-- TABLE: PANNE
+-- =========================================
+CREATE TABLE panne (
+    id_panne INT AUTO_INCREMENT PRIMARY KEY,
+    type_panne VARCHAR(50),
+    description VARCHAR(255)
+) ENGINE=InnoDB;
+
+-- =========================================
+-- TABLE: INTERVENTION
+-- =========================================
+CREATE TABLE intervention (
+    id_intervention INT AUTO_INCREMENT PRIMARY KEY,
+    date_demande DATE,
+    date_intervention DATE,
+    statut VARCHAR(50),
+    localisation VARCHAR(100),
+    latitude DECIMAL(10,8),
+    longitude DECIMAL(11,8),
+    description_probleme TEXT,
+    type_intervention VARCHAR(50),
+    
+    id_client INT,
+    id_vehicule INT,
+    id_mecanicien INT,
+
+    FOREIGN KEY (id_client) REFERENCES client(id_user) ON DELETE CASCADE,
+    FOREIGN KEY (id_vehicule) REFERENCES vehicule(id_vehicule) ON DELETE SET NULL,
+    FOREIGN KEY (id_mecanicien) REFERENCES mecanicien(id_user) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- =========================================
+-- RELATION: INTERVENTION <-> PANNE (Many-to-Many)
+-- =========================================
+CREATE TABLE intervention_panne (
+    id_intervention INT,
+    id_panne INT,
+    PRIMARY KEY (id_intervention, id_panne),
+    FOREIGN KEY (id_intervention) REFERENCES intervention(id_intervention) ON DELETE CASCADE,
+    FOREIGN KEY (id_panne) REFERENCES panne(id_panne) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================
+-- TABLE: PAIEMENT
+-- =========================================
+CREATE TABLE paiement (
+    id_paiement INT AUTO_INCREMENT PRIMARY KEY,
+    montant DECIMAL(10,2),
+    date_paiement DATE,
+    mode_paiement VARCHAR(50),
+    statut VARCHAR(50),
+    
+    id_intervention INT UNIQUE,
+    FOREIGN KEY (id_intervention) REFERENCES intervention(id_intervention) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================
+-- TABLE: AVIS (FINAL VERSION)
+-- =========================================
+CREATE TABLE avis (
+    id_avis INT AUTO_INCREMENT PRIMARY KEY,
+    note INT CHECK (note BETWEEN 1 AND 5),
+    commentaire TEXT,
+    date DATE,
+
+    id_intervention INT UNIQUE,
+    id_user INT,
+
+    FOREIGN KEY (id_intervention)
+        REFERENCES intervention(id_intervention)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (id_user)
+        REFERENCES user(id_user)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================
+-- SAMPLE DATA
+-- =========================================
+
+-- USERS
+INSERT INTO user (nom, prenom, email, mot_de_passe, telephone) VALUES
+('Admin', 'Root', 'admin@test.com', 'hashed_pwd', '00000000'),
+('Aissa', 'Emna', 'emna@test.com', 'hashed_pwd', '21612345678'),
+('Ben Ali', 'Karim', 'mec@test.com', 'hashed_pwd', '98765432');
+
+-- ROLES
+INSERT INTO admin (id_user) VALUES (1);
+INSERT INTO client (id_user, adresse) VALUES (2, 'Tunis');
+INSERT INTO mecanicien (id_user, specialite, disponibilite, localisation)
+VALUES (3, 'Moteur', TRUE, 'Nabeul');
+
+-- VEHICULE
+INSERT INTO vehicule (marque, modele, immatriculation, type, id_client)
+VALUES ('Toyota', 'Yaris', '123-TN-456', 'Citadine', 2);
+
+-- PANNE
+INSERT INTO panne (type_panne, description)
+VALUES ('Batterie', 'Batterie déchargée');
+
+-- INTERVENTION
+INSERT INTO intervention (
+    date_demande, statut, localisation, description_probleme, type_intervention, id_client, id_mecanicien
+) VALUES (
+    CURDATE(), 'Terminée', 'Tunis', 'Voiture ne démarre pas', 'Dépannage', 2, 3
+);
+
+-- LINK INTERVENTION <-> PANNE
+INSERT INTO intervention_panne VALUES (1,1);
+
+-- PAIEMENT
+INSERT INTO paiement (montant, date_paiement, mode_paiement, statut, id_intervention)
+VALUES (150.00, CURDATE(), 'Espèces', 'Payé', 1);
+
+-- AVIS (AUTHORED BY USER 2 = CLIENT)
+INSERT INTO avis (note, commentaire, date, id_intervention, id_user)
+VALUES (5, 'Excellent service', CURDATE(), 1, 2);

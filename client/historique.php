@@ -11,8 +11,14 @@ include("../includes/sidebar_client.php");
 
 $id_user = $_SESSION['user_id'];
 
-// PDO SAFE QUERY
-$stmt = $pdo->prepare("SELECT * FROM intervention WHERE id_client = ?");
+// PDO SAFE QUERY with Mechanic Info
+$stmt = $pdo->prepare("
+    SELECT i.*, u.nom as meca_nom, u.prenom as meca_prenom, u.telephone as meca_telephone 
+    FROM intervention i 
+    LEFT JOIN user u ON i.id_mecanicien = u.id_user 
+    WHERE i.id_client = ?
+    ORDER BY i.id_intervention DESC
+");
 $stmt->execute([$id_user]);
 $interventions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -59,9 +65,17 @@ $interventions = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?= htmlspecialchars($row['type_intervention']) ?>
                     </p>
 
-                    <p class="text-sm text-gray-500">
-                        Statut: <?= htmlspecialchars($row['statut']) ?>
+                    <p class="text-sm text-gray-500 mb-2">
+                        Statut: <span class="font-semibold uppercase"><?= htmlspecialchars($row['statut']) ?></span>
                     </p>
+                    
+                    <?php if (strtolower($row['statut']) === 'en cours' && !empty($row['meca_nom'])): ?>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800 mt-3 animate-fade-in">
+                        <p class="font-bold mb-1"><i class="fas fa-wrench mr-2"></i>Pris en charge par :</p>
+                        <p><?= htmlspecialchars($row['meca_prenom'] . ' ' . $row['meca_nom']) ?></p>
+                        <p class="mt-1 font-bold"><i class="fas fa-phone mr-2"></i><?= htmlspecialchars($row['meca_telephone'] ?? 'Non fourni') ?></p>
+                    </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="text-right">
