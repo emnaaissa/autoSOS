@@ -40,7 +40,7 @@ $revenus = $stmtList->fetchAll();
         <h1 class="text-2xl font-bold mb-10 text-blue-400 italic">auto<span class="text-red-500">SOS</span></h1>
         <ul class="space-y-4">
             <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="dashboard.php"><i class="fas fa-home mr-3"></i> Vue d'ensemble</a></li>
-            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="dashboard.php"><i class="fas fa-tools mr-3"></i> Interventions</a></li>
+            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="interventions.php"><i class="fas fa-tools mr-3"></i> Interventions</a></li>
             <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="historique.php"><i class="fas fa-history mr-3"></i> Historique</a></li>
             <li class="bg-blue-600 p-3 rounded-lg"><a href="revenus.php"><i class="fas fa-wallet mr-3"></i> Revenus</a></li>
             <li class="hover:bg-slate-800 p-3 rounded-lg transition mt-20"><a href="../auth/logout.php" class="text-red-400"><i class="fas fa-sign-out-alt mr-3"></i> Déconnexion</a></li>

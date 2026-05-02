@@ -36,6 +36,7 @@ $interventions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
@@ -44,7 +45,7 @@ $interventions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <?php include("../includes/sidebar_client.php"); ?>
 
 <!-- CONTENT -->
-<main class="md:ml-64 p-8">
+<main id="refresh-zone" class="md:ml-64 p-8">
 
     <h2 class="text-2xl font-bold mb-6 text-slate-800">
         Historique SOS
@@ -133,6 +134,14 @@ $interventions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endforeach; ?>
 
 </main>
+
+<script>
+    $(document).ready(function(){
+        setInterval(function(){
+            $("#refresh-zone").load(location.href + " #refresh-zone > *");
+        }, 5000);
+    });
+</script>
 
 </body>
 </html>
