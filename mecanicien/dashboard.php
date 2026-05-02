@@ -19,6 +19,12 @@ $stmt_missions = $pdo->prepare("SELECT COUNT(*) FROM intervention WHERE id_mecan
 $stmt_missions->execute([$meca_id]);
 $missions_du_jour = $stmt_missions->fetchColumn();
 
+// Note moyenne
+$stmt_note = $pdo->prepare("SELECT AVG(a.note) FROM avis a JOIN intervention i ON a.id_intervention = i.id_intervention WHERE i.id_mecanicien = ?");
+$stmt_note->execute([$meca_id]);
+$calc_note = $stmt_note->fetchColumn();
+$note_moyenne = $calc_note ? number_format($calc_note, 1) . '/5' : '0/5';
+
 // Interventions en attente
 $stmt_interv = $pdo->prepare("
     SELECT i.*, v.marque, v.modele
@@ -58,10 +64,10 @@ $interventions_en_cours = $stmt_encours->fetchAll();
     <nav class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white hidden md:block p-6">
         <h1 class="text-2xl font-bold mb-10 text-blue-400 italic">auto<span class="text-red-500">SOS</span></h1>
         <ul class="space-y-4">
-            <li class="bg-blue-600 p-3 rounded-lg"><a href="#"><i class="fas fa-home mr-3"></i> Vue d'ensemble</a></li>
-            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="#"><i class="fas fa-tools mr-3"></i> Interventions</a></li>
-            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="#"><i class="fas fa-history mr-3"></i> Historique</a></li>
-            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="#"><i class="fas fa-wallet mr-3"></i> Revenus</a></li>
+            <li class="bg-blue-600 p-3 rounded-lg"><a href="dashboard.php"><i class="fas fa-home mr-3"></i> Vue d'ensemble</a></li>
+            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="dashboard.php"><i class="fas fa-tools mr-3"></i> Interventions</a></li>
+            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="historique.php"><i class="fas fa-history mr-3"></i> Historique</a></li>
+            <li class="hover:bg-slate-800 p-3 rounded-lg transition"><a href="revenus.php"><i class="fas fa-wallet mr-3"></i> Revenus</a></li>
             <li class="hover:bg-slate-800 p-3 rounded-lg transition mt-20"><a href="../auth/logout.php" class="text-red-400"><i class="fas fa-sign-out-alt mr-3"></i> Déconnexion</a></li>
         </ul>
     </nav>
@@ -105,7 +111,7 @@ $interventions_en_cours = $stmt_encours->fetchAll();
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500 uppercase">Note moyenne</p>
-                        <h3 class="text-2xl font-bold">4.8/5</h3>
+                        <h3 class="text-2xl font-bold"><?= $note_moyenne ?></h3>
                     </div>
                     <i class="fas fa-star text-yellow-200 text-3xl"></i>
                 </div>
