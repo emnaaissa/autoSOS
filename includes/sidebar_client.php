@@ -5,6 +5,8 @@ $current = basename($_SERVER['PHP_SELF']);
 <nav class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white hidden md:block p-6">
     <h1 class="text-2xl font-bold mb-10 text-blue-400 italic">
         auto<span class="text-red-500">SOS</span>
+        <span class="text-[10px] bg-blue-900 text-blue-300 px-2 py-1 rounded uppercase tracking-widest font-bold">Client</span>
+
     </h1>
 
     <ul class="space-y-2">

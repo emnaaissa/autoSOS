@@ -34,6 +34,7 @@ $interventions_en_cours = $stmt_encours->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,35 +65,39 @@ $interventions_en_cours = $stmt_encours->fetchAll();
 
         <!-- MISSIONS EN COURS -->
         <?php if (count($interventions_en_cours) > 0): ?>
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border-l-4 border-blue-500">
-            <div class="p-5 border-b flex justify-between items-center bg-blue-50">
-                <h3 class="font-bold text-blue-800"><i class="fas fa-tools mr-2"></i>Mes interventions en cours</h3>
-            </div>
-            <div class="divide-y">
-                <?php foreach ($interventions_en_cours as $inv): ?>
-                <div class="p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-gray-50 transition gap-4">
-                    <div class="flex items-start space-x-4">
-                        <div class="bg-blue-100 p-3 rounded-lg flex-shrink-0"><i class="fas fa-wrench text-blue-600 text-xl"></i></div>
-                        <div>
-                            <p class="font-bold">
-                                <?= htmlspecialchars($inv['type_intervention']) ?> 
-                                <?= !empty($inv['marque']) ? ' - ' . htmlspecialchars($inv['marque'] . ' ' . $inv['modele']) : '' ?>
-                            </p>
-                            <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> <?= htmlspecialchars($inv['localisation']) ?></p>
-                            <p class="text-xs text-blue-600 font-bold mt-1"><i class="fas fa-phone"></i> <?= htmlspecialchars($inv['client_tel'] ?? '') ?> (<?= htmlspecialchars($inv['client_nom'] ?? 'Client') ?>)</p>
-                        </div>
-                    </div>
-                    <div class="flex space-x-2">
-                        <form action="terminer_intervention.php" method="POST" class="inline m-0 p-0">
-                            <input type="hidden" name="id_intervention" value="<?= $inv['id_intervention'] ?>">
-                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 whitespace-nowrap">✔ Terminer</button>
-                        </form>
-                        <a href="details_intervention.php?id=<?= $inv['id_intervention'] ?>" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center">Détails</a>
-                    </div>
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border-l-4 border-blue-500">
+                <div class="p-5 border-b flex justify-between items-center bg-blue-50">
+                    <h3 class="font-bold text-blue-800"><i class="fas fa-tools mr-2"></i>Mes interventions en cours</h3>
                 </div>
-                <?php endforeach; ?>
+                <div class="divide-y">
+                    <?php foreach ($interventions_en_cours as $inv): ?>
+                        <div class="p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-gray-50 transition gap-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-blue-100 p-3 rounded-lg flex-shrink-0"><i class="fas fa-wrench text-blue-600 text-xl"></i></div>
+                                <div>
+                                    <p class="font-bold">
+                                        <?= htmlspecialchars($inv['type_intervention']) ?>
+                                        <?= !empty($inv['marque']) ? ' - ' . htmlspecialchars($inv['marque'] . ' ' . $inv['modele']) : '' ?>
+                                    </p>
+                                    <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> <?= htmlspecialchars($inv['localisation']) ?></p>
+                                    <p class="text-xs text-blue-600 font-bold mt-1"><i class="fas fa-phone"></i> <?= htmlspecialchars($inv['client_tel'] ?? '') ?> (<?= htmlspecialchars($inv['client_nom'] ?? 'Client') ?>)</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <form action="terminer_intervention.php" method="POST" class="inline m-0 p-0">
+                                    <input type="hidden" name="id_intervention" value="<?= $inv['id_intervention'] ?>">
+                                    <button type="button"
+                                        onclick="confirmerFinIntervention(<?= $inv['id_intervention'] ?>)"
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 whitespace-nowrap">
+                                        ✔ Terminer
+                                    </button>
+                                </form>
+                                <button type="button" onclick="openDetails(<?= $inv['id_intervention'] ?>)" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold">Détails</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        </div>
         <?php endif; ?>
 
         <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
@@ -103,25 +108,25 @@ $interventions_en_cours = $stmt_encours->fetchAll();
             <div class="divide-y">
                 <?php if (count($interventions) > 0): ?>
                     <?php foreach ($interventions as $inv): ?>
-                    <div class="p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-gray-50 transition gap-4">
-                        <div class="flex items-start space-x-4">
-                            <div class="bg-gray-100 p-3 rounded-lg flex-shrink-0"><i class="fas fa-car text-gray-600 text-xl"></i></div>
-                            <div>
-                                <p class="font-bold">
-                                    <?= htmlspecialchars($inv['type_intervention'] ?? 'Intervention') ?> 
-                                    <?= !empty($inv['marque']) ? ' - ' . htmlspecialchars($inv['marque'] . ' ' . $inv['modele']) : '' ?>
-                                </p>
-                                <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> <?= htmlspecialchars($inv['localisation']) ?></p>
+                        <div class="p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-gray-50 transition gap-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-gray-100 p-3 rounded-lg flex-shrink-0"><i class="fas fa-car text-gray-600 text-xl"></i></div>
+                                <div>
+                                    <p class="font-bold">
+                                        <?= htmlspecialchars($inv['type_intervention'] ?? 'Intervention') ?>
+                                        <?= !empty($inv['marque']) ? ' - ' . htmlspecialchars($inv['marque'] . ' ' . $inv['modele']) : '' ?>
+                                    </p>
+                                    <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> <?= htmlspecialchars($inv['localisation']) ?></p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <form action="accepter_intervention.php" method="POST" class="inline m-0 p-0">
+                                    <input type="hidden" name="id_intervention" value="<?= $inv['id_intervention'] ?>">
+                                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600 whitespace-nowrap">Accepter</button>
+                                </form>
+                                <a href="details_intervention.php?id=<?= $inv['id_intervention'] ?>" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center">Détails</a>
                             </div>
                         </div>
-                        <div class="flex space-x-2">
-                            <form action="accepter_intervention.php" method="POST" class="inline m-0 p-0">
-                                <input type="hidden" name="id_intervention" value="<?= $inv['id_intervention'] ?>">
-                                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600 whitespace-nowrap">Accepter</button>
-                            </form>
-                            <a href="details_intervention.php?id=<?= $inv['id_intervention'] ?>" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center">Détails</a>
-                        </div>
-                    </div>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <div class="p-10 text-center text-gray-500 italic"><i class="fas fa-shield-alt text-3xl mb-4 opacity-50 block"></i>Aucune intervention en attente.</div>
@@ -141,12 +146,83 @@ $interventions_en_cours = $stmt_encours->fetchAll();
     </div>
 
     <script>
-        $(document).ready(function(){
-            setInterval(function(){
-                $("#refresh-zone").load(location.href + " #refresh-zone > *");
-            }, 5000);
+        function openDetails(id) {
+            $('#modalDetails').removeClass('hidden');
+            $('#modalContent').html('<div class="flex justify-center py-10"><i class="fas fa-spinner animate-spin text-4xl text-blue-600"></i></div>');
+
+            $.ajax({
+                url: 'get_intervention_details.php',
+                type: 'GET',
+                data: {
+                    id: id
+                },
+                success: function(response) {
+                    $('#modalContent').html(response);
+                },
+                error: function() {
+                    $('#modalContent').html('<p class="text-red-500 text-center">Erreur lors du chargement des détails.</p>');
+                }
+            });
+        }
+
+        function closeModal() {
+            $('#modalDetails').addClass('hidden');
+        }
+
+        $(window).on('click', function(e) {
+            if ($(e.target).is('#modalDetails')) closeModal();
         });
+
+        setInterval(function() {
+            if ($('#modalDetails').hasClass('hidden')) {
+                $("#refresh-zone").load(location.href + " #refresh-zone > *");
+            }
+        }, 10000);
+
+        function confirmerFinIntervention(idIntervention) {
+            const prix = prompt("Entrez le montant final à payer par le client (DT) :");
+
+            if (prix !== null && prix !== "" && !isNaN(prix)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'terminer_intervention.php';
+
+                const inputId = document.createElement('input');
+                inputId.type = 'hidden';
+                inputId.name = 'id_intervention';
+                inputId.value = idIntervention;
+
+                const inputPrix = document.createElement('input');
+                inputPrix.type = 'hidden';
+                inputPrix.name = 'montant';
+                inputPrix.value = prix;
+
+                form.appendChild(inputId);
+                form.appendChild(inputPrix);
+                document.body.appendChild(form);
+                form.submit();
+            } else if (prix !== null) {
+                alert("Veuillez saisir un montant valide.");
+            }
+        }
     </script>
 
+    <!-- MODALE DETAILS -->
+    <div id="modalDetails" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all">
+            <div class="bg-slate-900 p-4 text-white flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-info-circle mr-2"></i> Détails de l'intervention</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white"><i class="fas fa-times text-2xl"></i></button>
+            </div>
+
+            <div id="modalContent" class="p-6">
+                <div class="flex justify-center py-10">
+                    <i class="fas fa-spinner animate-spin text-4xl text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
+
 </html>
