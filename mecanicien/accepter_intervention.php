@@ -7,16 +7,19 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$id_mecanicien = $_SESSION['user_id'];
+$id_mecanicien   = $_SESSION['user_id'];
 $id_intervention = $_POST['id_intervention'] ?? null;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $id_intervention) {
     try {
-        // Auto-heal: Ensure the mechanic exists in the `mecanicien` table to prevent Foreign Key errors
+        // Auto-heal: ensure mechanic exists in mecanicien table
         $checkMeca = $pdo->prepare("SELECT id_user FROM mecanicien WHERE id_user = ?");
         $checkMeca->execute([$id_mecanicien]);
         if (!$checkMeca->fetch()) {
-            $insertMeca = $pdo->prepare("INSERT INTO mecanicien (id_user, specialite, disponibilite, localisation) VALUES (?, 'Général', 1, 'Non spécifié')");
+            $insertMeca = $pdo->prepare("
+                INSERT INTO mecanicien (id_user, specialite, disponibilite, localisation) 
+                VALUES (?, 'Général', 1, 'Non spécifié')
+            ");
             $insertMeca->execute([$id_mecanicien]);
         }
 
@@ -26,7 +29,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $id_intervention) {
         $intervention = $stmt->fetch();
 
         if ($intervention && strtolower(trim($intervention['statut'])) === 'en attente') {
-            $update = $pdo->prepare("UPDATE intervention SET statut = 'en cours', id_mecanicien = ? WHERE id_intervention = ?");
+            $update = $pdo->prepare("
+                UPDATE intervention 
+                SET statut = 'en cours',
+                    id_mecanicien = ?,
+                    date_acceptation = NOW()
+                WHERE id_intervention = ?
+            ");
             $update->execute([$id_mecanicien, $id_intervention]);
         }
     } catch (PDOException $e) {

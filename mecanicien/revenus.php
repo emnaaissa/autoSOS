@@ -5,20 +5,23 @@ include("../config/db.php");
 
 $meca_id = $_SESSION['user_id'];
 
-// Calcul revenus
+// Calcul revenus (88% du montant total — 12% commission plateforme)
 $stmt = $pdo->prepare("
-    SELECT SUM(p.montant) as total, COUNT(i.id_intervention) as nb_missions 
+    SELECT SUM(p.montant) as total_brut, COUNT(i.id_intervention) as nb_missions 
     FROM intervention i 
     LEFT JOIN paiement p ON i.id_intervention = p.id_intervention 
-    WHERE i.id_mecanicien = ? AND i.statut = 'terminé'
+    WHERE i.id_mecanicien = ? AND i.statut = 'terminé' AND p.statut = 'Payé'
 ");
 $stmt->execute([$meca_id]);
 $stats = $stmt->fetch();
-$total_revenue = $stats['total'] ?? 0;
+
+$total_brut     = $stats['total_brut'] ?? 0;
+$total_net      = $total_brut * 0.88;
+$total_commission = $total_brut * 0.12;
 $total_missions = $stats['nb_missions'] ?? 0;
 
 $stmtList = $pdo->prepare("
-    SELECT i.date_intervention, i.type_intervention, p.montant, p.statut as p_statut 
+    SELECT i.date_intervention, i.type_intervention, p.montant, p.statut as p_statut, p.mode_paiement
     FROM intervention i 
     LEFT JOIN paiement p ON i.id_intervention = p.id_intervention 
     WHERE i.id_mecanicien = ? AND i.statut = 'terminé'
@@ -46,42 +49,85 @@ $revenus = $stmtList->fetchAll();
             <li class="hover:bg-slate-800 p-3 rounded-lg transition mt-20"><a href="../auth/logout.php" class="text-red-400"><i class="fas fa-sign-out-alt mr-3"></i> Déconnexion</a></li>
         </ul>
     </nav>
+
     <main class="md:ml-64 p-4 md:p-8">
         <header class="mb-8 pl-12 md:pl-0 pt-4 md:pt-0">
             <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-wallet text-gray-500 mr-2"></i> Mes Revenus</h2>
+            <p class="text-sm text-gray-400 mt-1">Après déduction de la commission plateforme (12%)</p>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Stats cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
             <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
                 <div class="flex items-center justify-between">
-                    <div><p class="text-sm text-gray-500 uppercase font-bold">Gains Totaux</p><h3 class="text-3xl font-black text-green-600"><?= number_format($total_revenue, 2) ?> DT</h3></div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold tracking-widest">Gains Nets (88%)</p>
+                        <h3 class="text-3xl font-black text-green-600"><?= number_format($total_net, 2) ?> DT</h3>
+                        <p class="text-xs text-gray-400 mt-1">Brut : <?= number_format($total_brut, 2) ?> DT</p>
+                    </div>
                     <i class="fas fa-hand-holding-usd text-green-100 text-5xl"></i>
                 </div>
             </div>
+
             <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
                 <div class="flex items-center justify-between">
-                    <div><p class="text-sm text-gray-500 uppercase font-bold">Missions Réalisées</p><h3 class="text-3xl font-black text-blue-600"><?= $total_missions ?></h3></div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold tracking-widest">Missions Réalisées</p>
+                        <h3 class="text-3xl font-black text-blue-600"><?= $total_missions ?></h3>
+                    </div>
                     <i class="fas fa-check-double text-blue-100 text-5xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-slate-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold tracking-widest">Commission Plateforme</p>
+                        <h3 class="text-3xl font-black text-slate-400"><?= number_format($total_commission, 2) ?> DT</h3>
+                        <p class="text-xs text-gray-400 mt-1">12% sur paiements reçus</p>
+                    </div>
+                    <i class="fas fa-percentage text-slate-100 text-5xl"></i>
                 </div>
             </div>
         </div>
 
+        <!-- Détail -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden border">
-            <div class="p-5 border-b bg-gray-50"><h3 class="font-bold text-gray-700"><i class="fas fa-list-alt mr-2 text-gray-400"></i>Détail des rémunérations</h3></div>
+            <div class="p-5 border-b bg-gray-50 flex items-center justify-between">
+                <h3 class="font-bold text-gray-700"><i class="fas fa-list-alt mr-2 text-gray-400"></i>Détail des rémunérations</h3>
+                <span class="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full font-bold uppercase">Votre part : 88%</span>
+            </div>
             <div class="divide-y">
                 <?php if (count($revenus) > 0): ?>
-                    <?php foreach ($revenus as $rev): ?>
-                    <div class="p-5 flex items-center justify-between hover:bg-gray-50 transition">
+                    <?php foreach ($revenus as $rev): 
+                        $montant_brut = $rev['montant'] ?? null;
+                        $montant_net  = $montant_brut ? $montant_brut * 0.88 : null;
+                        $isPaid       = strtolower($rev['p_statut'] ?? '') === 'payé';
+                    ?>
+                    <div class="p-5 flex items-center justify-between hover:bg-gray-50 transition gap-4 flex-wrap">
                         <div>
                             <p class="font-bold text-gray-800"><?= htmlspecialchars($rev['type_intervention']) ?></p>
-                            <p class="text-sm text-gray-500"><i class="far fa-calendar-alt mr-1"></i><?= htmlspecialchars($rev['date_intervention'] ?? '') ?></p>
+                            <p class="text-sm text-gray-500">
+                                <i class="far fa-calendar-alt mr-1"></i><?= htmlspecialchars($rev['date_intervention'] ?? '—') ?>
+                                <?php if (!empty($rev['mode_paiement'])): ?>
+                                    &nbsp;·&nbsp;<i class="fas fa-credit-card mr-1"></i><?= htmlspecialchars($rev['mode_paiement']) ?>
+                                <?php endif; ?>
+                            </p>
                         </div>
                         <div class="text-right">
-                            <p class="font-bold text-lg <?= empty($rev['montant']) ? 'text-gray-400' : 'text-green-600' ?>">
-                                <?= empty($rev['montant']) ? 'En attente ⏳' : number_format($rev['montant'], 2) . ' DT' ?>
-                            </p>
-                            <?php if(!empty($rev['p_statut'])): ?>
-                                <span class="text-xs px-2 py-1 <?= strtolower($rev['p_statut']) == 'payé' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?> rounded font-bold uppercase mt-1 inline-block">
+                            <?php if ($montant_net !== null && $isPaid): ?>
+                                <p class="font-black text-lg text-green-600"><?= number_format($montant_net, 2) ?> DT</p>
+                                <p class="text-xs text-gray-400">sur <?= number_format($montant_brut, 2) ?> DT client</p>
+                            <?php elseif ($montant_brut !== null): ?>
+                                <p class="font-bold text-lg text-gray-400">En attente ⏳</p>
+                                <p class="text-xs text-gray-400">~<?= number_format($montant_brut * 0.88, 2) ?> DT attendus</p>
+                            <?php else: ?>
+                                <p class="font-bold text-lg text-gray-400">—</p>
+                            <?php endif; ?>
+
+                            <?php if (!empty($rev['p_statut'])): ?>
+                                <span class="text-xs px-2 py-1 <?= $isPaid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?> rounded font-bold uppercase mt-1 inline-block">
                                     <?= htmlspecialchars($rev['p_statut']) ?>
                                 </span>
                             <?php endif; ?>
@@ -93,7 +139,6 @@ $revenus = $stmtList->fetchAll();
                 <?php endif; ?>
             </div>
         </div>
-
     </main>
 </body>
 </html>

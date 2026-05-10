@@ -7,21 +7,24 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$id_mecanicien = $_SESSION['user_id'];
+$id_mecanicien   = $_SESSION['user_id'];
 $id_intervention = $_POST['id_intervention'] ?? null;
-$montant = $_POST['montant'] ?? null;
+$montant         = $_POST['montant']         ?? null;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $id_intervention && $montant) {
     try {
         $pdo->beginTransaction();
 
+        // Mark as done + record finish timestamp
         $updateInterv = $pdo->prepare("
             UPDATE intervention 
-            SET statut = 'terminé', date_intervention = NOW() 
+            SET statut = 'terminé',
+                date_fin = NOW()
             WHERE id_intervention = ? AND id_mecanicien = ?
         ");
         $updateInterv->execute([$id_intervention, $id_mecanicien]);
 
+        // Create or update payment record
         $stmtPay = $pdo->prepare("
             INSERT INTO paiement (id_intervention, montant, statut, date_paiement) 
             VALUES (?, ?, 'en attente', NOW())
